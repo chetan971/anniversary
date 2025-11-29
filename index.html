@@ -8,8 +8,9 @@
     body {
         margin: 0;
         font-family: Arial, sans-serif;
-        background: linear-gradient(to bottom, #ffdde1, #ee9ca7);
+        background: linear-gradient(to bottom, #ffd2e1, #ff9fba);
         overflow: hidden;
+        position: relative;
     }
 
     /* Gift Icon */
@@ -17,116 +18,117 @@
         position: fixed;
         bottom: 20px;
         right: 20px;
-        font-size: 70px;
+        font-size: 55px;
         cursor: pointer;
-        z-index: 9999;
-        animation: pulse 1.5s infinite;
+        z-index: 20;
+        animation: pulse 1.8s infinite;
     }
     @keyframes pulse {
         0% { transform: scale(1); }
-        50% { transform: scale(1.3); }
+        50% { transform: scale(1.15); }
         100% { transform: scale(1); }
     }
 
-    /* Popup */
+    /* Popup container */
     #popup {
         display: none;
         position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.4);
+        inset: 0;
+        background: rgba(0,0,0,0.35);
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        z-index: 9998;
-    }
-
-    /* Floating emojis */
-    .float {
-        position: fixed;
-        bottom: -60px;
-        animation: floatUp 4s linear forwards;
-        pointer-events: none;
-    }
-    @keyframes floatUp {
-        0% { transform: translateY(0) scale(1); opacity: 1; }
-        100% { transform: translateY(-120vh) scale(2); opacity: 0; }
-    }
-
-    /* Rose petals */
-    .petal {
-        position: fixed;
-        top: -50px;
-        opacity: 0.9;
-        animation: fall 6s linear forwards;
-    }
-    @keyframes fall {
-        0% { transform: translateY(0) rotate(0deg); }
-        100% { transform: translateY(120vh) rotate(360deg); opacity: 0; }
-    }
-
-    /* Heart touch trail */
-    .heart {
-        position: fixed;
-        pointer-events: none;
-        animation: heartFloat 1.2s ease-in-out forwards;
-        font-size: 30px;
-    }
-    @keyframes heartFloat {
-        0% { transform: scale(1) translateY(0); opacity: 1; }
-        100% { transform: scale(2) translateY(-60px); opacity: 0; }
+        z-index: 10;
     }
 
     /* Final message */
     #final-msg {
         display: none;
-        font-size: 55px;
+        font-size: 38px;
+        text-align: center;
         font-weight: bold;
         color: #fff;
-        text-shadow: 0 0 10px #ff0066, 0 0 20px #ff80b5;
-        animation: glow 2s infinite alternate ease-in-out;
+        text-shadow: 0 0 10px #ff4da6;
+        padding: 10px;
     }
-    @keyframes glow {
-        from { text-shadow: 0 0 10px #ff4da6; }
-        to { text-shadow: 0 0 25px #ff1a75; }
+
+    /* Soft emojis */
+    .float {
+        position: fixed;
+        bottom: -40px;
+        animation: floatUp 5s ease-out forwards;
+        font-size: 30px;
+        pointer-events: none;
+        opacity: 0.85;
+    }
+    @keyframes floatUp {
+        0% { transform: translateY(0) scale(1); opacity: 0.9; }
+        100% { transform: translateY(-110vh) scale(1.4); opacity: 0; }
+    }
+
+    /* Soft rose petals */
+    .petal {
+        position: fixed;
+        top: -30px;
+        font-size: 22px;
+        opacity: 0.8;
+        animation: fall 5.5s linear forwards;
+    }
+    @keyframes fall {
+        0% { transform: translateY(0) rotate(0deg); }
+        100% { transform: translateY(110vh) rotate(180deg); opacity: 0; }
+    }
+
+    /* Small gentle heart trail */
+    .heart {
+        position: fixed;
+        font-size: 20px;
+        pointer-events: none;
+        animation: heartFloat 1.2s ease-out forwards;
+    }
+    @keyframes heartFloat {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.8) translateY(-30px); opacity: 0; }
+    }
+
+    /* Fireworks canvas */
+    #fireworks {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
     }
 </style>
 </head>
 
 <body>
 
-<!-- Gift Icon -->
+<!-- GIFT ICON -->
 <div id="gift-icon">🎁</div>
 
-<!-- Popup -->
+<!-- POPUP -->
 <div id="popup">
-    <p id="final-msg">Happy Anniversary ❤️🎉</p>
+    <p id="final-msg">Happy Anniversary ❤️</p>
 </div>
 
-<!-- FIREWORK CANVAS -->
+<!-- FIREWORKS BACKGROUND -->
 <canvas id="fireworks"></canvas>
 
 <script>
-/************* EMOJI EXPLOSION *************/
-const emojis = [
-    "🌹","🌹","🌹","🌹","🌹","🌹",
-    "😘","😘","💋","💋",
-    "💖","💝","💞","💗","✨"
-];
+/************* CLEANER EMOJI PACK *************/
+const emojis = ["🌹","💋","😘","💖"];
 const petals = ["🌸","🌺","🌹"];
 
 const gift = document.getElementById("gift-icon");
 const popup = document.getElementById("popup");
 const finalMsg = document.getElementById("final-msg");
 
+/************* OPEN EFFECT *************/
 gift.addEventListener("click", () => {
     popup.style.display = "flex";
 
-    let emojiTimer = setInterval(() => {
-        for (let i = 0; i < 5; i++) createFloat();
-    }, 100);
-
-    let petalTimer = setInterval(() => createPetal(), 130);
+    let emojiTimer = setInterval(() => createFloat(), 200);
+    let petalTimer = setInterval(() => createPetal(), 300);
 
     startFireworks();
 
@@ -134,101 +136,93 @@ gift.addEventListener("click", () => {
         clearInterval(emojiTimer);
         clearInterval(petalTimer);
         finalMsg.style.display = "block";
-    }, 6000);
+    }, 4000);
 });
 
+/************* FLOATING EMOJIS *************/
 function createFloat() {
     const el = document.createElement("div");
     el.classList.add("float");
     el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
     el.style.left = Math.random() * 90 + "vw";
-    el.style.fontSize = (30 + Math.random() * 40) + "px";
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 4000);
+    setTimeout(() => el.remove(), 5000);
 }
 
+/************* ROSE PETALS *************/
 function createPetal() {
     const el = document.createElement("div");
     el.classList.add("petal");
     el.innerText = petals[Math.floor(Math.random() * petals.length)];
-    el.style.left = Math.random() * 95 + "vw";
-    el.style.fontSize = (25 + Math.random() * 25) + "px";
-    el.style.animationDuration = (4 + Math.random() * 3) + "s";
+    el.style.left = Math.random() * 100 + "vw";
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 7000);
+    setTimeout(() => el.remove(), 5500);
 }
 
-
-/************* HEART TRAIL ON TOUCH *************/
-document.addEventListener("mousemove", createHeartTrail);
-document.addEventListener("touchmove", (e)=> {
-    createHeartTrail(e.touches[0]);
+/************* HEART TRAIL *************/
+document.addEventListener("touchmove", (e)=>{
+    makeHeart(e.touches[0].clientX, e.touches[0].clientY);
+});
+document.addEventListener("mousemove", (e)=>{
+    makeHeart(e.clientX, e.clientY);
 });
 
-function createHeartTrail(e) {
-    const heart = document.createElement("div");
-    heart.classList.add("heart");
-    heart.innerHTML = "💞";
-    heart.style.left = e.clientX + "px";
-    heart.style.top = e.clientY + "px";
-    heart.style.fontSize = (20 + Math.random()*20) + "px";
-    document.body.appendChild(heart);
-    setTimeout(() => heart.remove(), 1200);
+function makeHeart(x, y) {
+    const h = document.createElement("div");
+    h.classList.add("heart");
+    h.innerHTML = "💗";
+    h.style.left = x + "px";
+    h.style.top = y + "px";
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(), 1200);
 }
 
-
-/************* FIREWORKS ANIMATION *************/
+/************* FIREWORKS (SOFT) *************/
 const canvas = document.getElementById("fireworks");
 const ctx = canvas.getContext("2d");
 canvas.width = innerWidth;
 canvas.height = innerHeight;
-
-window.onresize = () => {
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
-};
 
 let particles = [];
 
 function startFireworks() {
     setInterval(() => {
         const x = Math.random() * canvas.width;
-        const y = Math.random() * (canvas.height / 2);
+        const y = Math.random() * canvas.height * 0.5;
         createFirework(x, y);
-    }, 500);
+    }, 700);
 }
 
 function createFirework(x, y) {
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 20; i++) {
         particles.push({
-            x: x,
-            y: y,
-            color: `hsl(${Math.random()*360},100%,60%)`,
-            speedX: (Math.random() - 0.5) * 6,
-            speedY: (Math.random() - 0.5) * 6,
-            size: Math.random() * 3
+            x, y,
+            color: `hsl(${Math.random()*360},90%,65%)`,
+            size: 2 + Math.random(),
+            vx: (Math.random() - 0.5) * 3,
+            vy: (Math.random() - 0.5) * 3
         });
     }
 }
 
-function animateFireworks() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach((p, i) => {
-        p.x += p.speedX;
-        p.y += p.speedY;
+function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach((p,i)=>{
+        p.x += p.vx;
+        p.y += p.vy;
         p.size *= 0.96;
 
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
         ctx.fill();
 
-        if (p.size < 0.3) particles.splice(i, 1);
+        if(p.size < 0.4) particles.splice(i,1);
     });
-    requestAnimationFrame(animateFireworks);
+    requestAnimationFrame(animate);
 }
-animateFireworks();
-</script>
+animate();
 
+</script>
 </body>
 </html>
