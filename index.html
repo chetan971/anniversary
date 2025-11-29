@@ -1,158 +1,228 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animated Effects Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Anniversary</title>
 
-    <style>
-        /* 1. Reset and Canvas Background */
-        body {
-            overflow: hidden; /* Prevent scrollbars */
-            margin: 0;
-            background-color: #000; /* Dark background for fireworks */
-        }
-        
-        /* The canvas element must be sized correctly */
-        #fireworks {
-            display: block;
-            position: fixed; /* Ensures it covers the whole screen */
-            top: 0;
-            left: 0;
-            z-index: 1; /* Below the hearts */
-        }
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to bottom, #ffd2e1, #ff9fba);
+        overflow: hidden;
+        position: relative;
+    }
 
-        /* 2. Heart Trail Styling (CSS for Attractiveness) */
-        .heart {
-            position: absolute; /* Essential for placing hearts at cursor/touch coordinates */
-            font-size: 24px;   /* Size of the emoji */
-            pointer-events: none; /* Crucial: Allows interacting with elements *under* the heart */
-            user-select: none;  /* Prevent selecting the emoji */
-            z-index: 9999;     /* Ensure the heart is on top of everything */
+    /* Gift Icon */
+    #gift-icon {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        font-size: 55px;
+        cursor: pointer;
+        z-index: 20;
+        animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
 
-            /* Animation properties */
-            transform: translate(-50%, -50%); /* Centers the heart on the cursor tip */
-            animation: 
-                fadeout 1.2s ease-out forwards, /* Fades out over 1.2s */
-                liftup 1.2s ease-out forwards;  /* Moves upward over 1.2s */
-        }
+    /* Popup container */
+    #popup {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.35);
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 10;
+    }
 
-        /* 3. Keyframe Animations */
-        @keyframes liftup {
-            0% { transform: translate(-50%, -50%); opacity: 1; }
-            100% { transform: translate(-50%, -150%); opacity: 0; }
-        }
+    /* Final message */
+    #final-msg {
+        display: none;
+        font-size: 38px;
+        text-align: center;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 0 10px #ff4da6;
+        padding: 10px;
+    }
 
-        @keyframes fadeout {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-    </style>
+    /* Soft emojis */
+    .float {
+        position: fixed;
+        bottom: -40px;
+        animation: floatUp 5s ease-out forwards;
+        font-size: 30px;
+        pointer-events: none;
+        opacity: 0.85;
+    }
+    @keyframes floatUp {
+        0% { transform: translateY(0) scale(1); opacity: 0.9; }
+        100% { transform: translateY(-110vh) scale(1.4); opacity: 0; }
+    }
+
+    /* Soft rose petals */
+    .petal {
+        position: fixed;
+        top: -30px;
+        font-size: 22px;
+        opacity: 0.8;
+        animation: fall 5.5s linear forwards;
+    }
+    @keyframes fall {
+        0% { transform: translateY(0) rotate(0deg); }
+        100% { transform: translateY(110vh) rotate(180deg); opacity: 0; }
+    }
+
+    /* Small gentle heart trail */
+    .heart {
+        position: fixed;
+        font-size: 20px;
+        pointer-events: none;
+        animation: heartFloat 1.2s ease-out forwards;
+    }
+    @keyframes heartFloat {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.8) translateY(-30px); opacity: 0; }
+    }
+
+    /* Fireworks canvas */
+    #fireworks {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+    }
+</style>
 </head>
+
 <body>
 
-    <canvas id="fireworks"></canvas>
+<!-- GIFT ICON -->
+<div id="gift-icon">🎁</div>
 
-    <script>
-        /************* HEART TRAIL *************/
-        // Event listener for mobile touch movement
-        document.addEventListener("touchmove", (e)=>{
-            // Use the coordinates of the first touch point
-            makeHeart(e.touches[0].clientX, e.touches[0].clientY);
-            // Prevents the browser from scrolling while touching
-            e.preventDefault(); 
-        }, { passive: false }); // passive: false is sometimes needed for preventDefault
+<!-- POPUP -->
+<div id="popup">
+    <p id="final-msg">Happy Anniversary Darling 😘😘😘😘❤️</p>
+</div>
 
-        // Event listener for desktop mouse movement
-        document.addEventListener("mousemove", (e)=>{
-            makeHeart(e.clientX, e.clientY);
+<!-- FIREWORKS BACKGROUND -->
+<canvas id="fireworks"></canvas>
+
+<script>
+/************* CLEANER EMOJI PACK *************/
+const emojis = ["🌹","💋","😘","💖"];
+const petals = ["🌸","🌺","🌹"];
+
+const gift = document.getElementById("gift-icon");
+const popup = document.getElementById("popup");
+const finalMsg = document.getElementById("final-msg");
+
+/************* OPEN EFFECT *************/
+gift.addEventListener("click", () => {
+    popup.style.display = "flex";
+
+    let emojiTimer = setInterval(() => createFloat(), 125);
+    let petalTimer = setInterval(() => createPetal(), 150);
+
+    startFireworks();
+
+    setTimeout(() => {
+        clearInterval(emojiTimer);
+        clearInterval(petalTimer);
+        finalMsg.style.display = "block";
+    }, 4000);
+});
+
+/************* FLOATING EMOJIS *************/
+function createFloat() {
+    const el = document.createElement("div");
+    el.classList.add("float");
+    el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = Math.random() * 90 + "vw";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+}
+
+/************* ROSE PETALS *************/
+function createPetal() {
+    const el = document.createElement("div");
+    el.classList.add("petal");
+    el.innerText = petals[Math.floor(Math.random() * petals.length)];
+    el.style.left = Math.random() * 100 + "vw";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5500);
+}
+
+/************* HEART TRAIL *************/
+document.addEventListener("touchmove", (e)=>{
+    makeHeart(e.touches[0].clientX, e.touches[0].clientY);
+});
+document.addEventListener("mousemove", (e)=>{
+    makeHeart(e.clientX, e.clientY);
+});
+
+function makeHeart(x, y) {
+    const h = document.createElement("div");
+    h.classList.add("heart");
+    h.innerHTML = "💗";
+    h.style.left = x + "px";
+    h.style.top = y + "px";
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(), 1200);
+}
+
+/************* FIREWORKS (SOFT) *************/
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+let particles = [];
+
+function startFireworks() {
+    setInterval(() => {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height * 0.5;
+        createFirework(x, y);
+    }, 700);
+}
+
+function createFirework(x, y) {
+    for (let i = 0; i < 20; i++) {
+        particles.push({
+            x, y,
+            color: `hsl(${Math.random()*360},90%,65%)`,
+            size: 2 + Math.random(),
+            vx: (Math.random() - 0.5) * 3,
+            vy: (Math.random() - 0.5) * 3
         });
+    }
+}
 
-        function makeHeart(x, y) {
-            const h = document.createElement("div");
-            h.classList.add("heart");
-            h.innerHTML = "💗";
-            // Use CSS positioning
-            h.style.left = x + "px";
-            h.style.top = y + "px";
-            document.body.appendChild(h);
-            // Remove the heart after the animation time (1200ms)
-            setTimeout(()=>h.remove(), 1200);
-        }
+function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach((p,i)=>{
+        p.x += p.vx;
+        p.y += p.vy;
+        p.size *= 0.96;
 
-        /************* FIREWORKS (SOFT) *************/
-        const canvas = document.getElementById("fireworks");
-        const ctx = canvas.getContext("2d");
-        let particles = [];
-        
-        // Function to adjust canvas size on screen resize (important for mobile)
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        // Initial size setting
-        resizeCanvas(); 
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+        ctx.fill();
 
-        function startFireworks() {
-            // Start a new firework explosion every 700ms
-            setInterval(() => {
-                const x = Math.random() * canvas.width;
-                // Restrict y to the top half of the screen
-                const y = Math.random() * canvas.height * 0.5; 
-                createFirework(x, y);
-            }, 700);
-        }
+        if(p.size < 0.4) particles.splice(i,1);
+    });
+    requestAnimationFrame(animate);
+}
+animate();
 
-        function createFirework(x, y) {
-            for (let i = 0; i < 20; i++) {
-                particles.push({
-                    x, y,
-                    // Random HSL color for vibrant fireworks
-                    color: `hsl(${Math.random()*360},90%,65%)`, 
-                    size: 2 + Math.random(),
-                    // Random velocity for scattering
-                    vx: (Math.random() - 0.5) * 3, 
-                    vy: (Math.random() - 0.5) * 3
-                });
-            }
-        }
-
-        function animate() {
-            // Clear the canvas on each frame
-            ctx.clearRect(0,0,canvas.width,canvas.height); 
-            
-            // Iterate backwards for safe array removal
-            for(let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                
-                // Update properties
-                p.x += p.vx;
-                p.y += p.vy;
-                p.size *= 0.96; // Shrink over time
-
-                // Draw the particle
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-                ctx.fill();
-
-                // Remove particle if it's too small
-                if(p.size < 0.4) {
-                    particles.splice(i,1);
-                }
-            }
-            // Request the next frame
-            requestAnimationFrame(animate); 
-        }
-
-        // --- Execution ---
-        // 1. Start the animation loop
-        animate(); 
-        
-        // 2. Start the fireworks generation interval
-        startFireworks();
-
-    </script>
+</script>
 </body>
 </html>
